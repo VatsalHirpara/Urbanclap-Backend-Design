@@ -16,3 +16,5 @@ If the request is accepted, the user will get notifications with respect to the 
 Execute docker compose file using below command, wait for couple minutes, all services will be deployed inside single container.
 
 `docker compose start`
+
+Refer [Design document](https://github.com/VatsalHirpara/Urbanclap-Backend-Design/blob/main/Design%20document.pdf) for REST endpoints and more details
