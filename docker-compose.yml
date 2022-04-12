@@ -1,0 +1,126 @@
+version: "3"
+services:
+    jaeger:
+        container_name: jaeger
+        image: jaegertracing/all-in-one:1.7
+        ports:
+            - 5775:5775/udp
+            - 6831:6831/udp
+            - 6832:6832/udp
+            - 5778:5778
+            - 16686:16686
+            - 14268:14268
+            - 9411:9411
+    activemq:
+        container_name: activemq
+        image: rmohr/activemq
+        ports:
+            - 9393:61616
+            - 8161:8161
+    discoveryserver:
+        container_name: discoveryserver
+        image: vatsal09/discoveryserver
+        depends_on:
+            - jaeger
+        ports:
+            - 8761:8761
+        environment:
+            - JAEGER_HOST=jaeger
+    apigateway:
+        container_name: apigateway
+        image: vatsal09/apigateway
+        restart: always
+        ports:
+            - 9999:9999
+        depends_on:
+            - discoveryserver
+            - jaeger
+        environment:
+            - discoveryserver_url=http://discoveryserver:8761/eureka
+            - JAEGER_HOST=jaeger
+    booking:
+        container_name: booking
+        image: vatsal09/booking
+        restart: always
+        ports:
+            - 9094:9094
+        depends_on:
+            - discoveryserver
+            - activemq
+            - jaeger
+        environment:
+            - discoveryserver_url=http://discoveryserver:8761/eureka
+            - activemq_url=tcp://activemq:61616?jms.redeliveryPolicy.maximumRedeliveries=1
+            - JAEGER_HOST=jaeger
+    worker:
+        container_name: worker
+        image: vatsal09/worker
+        restart: always
+        ports:
+            - 9099:9099
+        depends_on:
+            - discoveryserver
+            - activemq
+            - jaeger
+        environment:
+            - discoveryserver_url=http://discoveryserver:8761/eureka
+            - activemq_url=tcp://activemq:61616?jms.redeliveryPolicy.maximumRedeliveries=1
+            - JAEGER_HOST=jaeger
+    notification:
+        container_name: notification
+        image: vatsal09/notification
+        restart: always
+        ports:
+            - 9191:9191
+        depends_on:
+            - discoveryserver
+            - activemq
+            - jaeger
+        environment:
+            - discoveryserver_url=http://discoveryserver:8761/eureka
+            - activemq_url=tcp://activemq:61616?jms.redeliveryPolicy.maximumRedeliveries=1
+            - JAEGER_HOST=jaeger
+    customer:
+        container_name: customer
+        image: vatsal09/customer
+        restart: always
+        ports:
+            - 9091:9091
+        depends_on:
+            - discoveryserver
+            - activemq
+            - jaeger
+        environment:
+            - discoveryserver_url=http://discoveryserver:8761/eureka
+            - activemq_url=tcp://activemq:61616?jms.redeliveryPolicy.maximumRedeliveries=1
+            - JAEGER_HOST=jaeger
+
+    service:
+        container_name: service
+        image: vatsal09/service
+        restart: always
+        ports:
+            - 8089:8089
+        depends_on:
+            - discoveryserver
+            - activemq
+            - jaeger
+        environment:
+            - discoveryserver_url=http://discoveryserver:8761/eureka
+            - activemq_url=tcp://activemq:61616?jms.redeliveryPolicy.maximumRedeliveries=1
+            - JAEGER_HOST=jaeger
+
+    payment:
+        container_name: payment
+        image: vatsal09/payment
+        restart: always
+        ports:
+            - 9096:9096
+        depends_on:
+            - discoveryserver
+            - activemq
+            - jaeger
+        environment:
+            - discoveryserver_url=http://discoveryserver:8761/eureka
+            - activemq_url=tcp://activemq:61616?jms.redeliveryPolicy.maximumRedeliveries=1
+            - JAEGER_HOST=jaeger
